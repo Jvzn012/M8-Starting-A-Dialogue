@@ -83,7 +83,7 @@ func show_text(current_item_index: int) -> void:
 	rich_text_label.text = current_item["text"]
 	expression.texture = current_item["expression"]
 	body.texture = current_item["character"]
-
+	create_buttons(current_item["choices"])
 	# We set the initial visible ratio to the text to 0, so we can change it in the tween
 	rich_text_label.visible_ratio = 0.0
 	# We create a tween that will draw the text
@@ -113,9 +113,22 @@ func show_text(current_item_index: int) -> void:
 	tween.finished.connect(func() -> void:
 		for button: Button in  action_buttons_v_box_container.get_children():
 			button.disabled = false
+)
 
 
-
+func create_buttons(choices_data: Dictionary) -> void:
+	for button in action_buttons_v_box_container.get_children():
+		button.queue_free()
+	for choice_text in choices_data:
+		var button := Button.new()
+		action_buttons_v_box_container.add_child(button)
+		button.text = choice_text
+		var target_line_idx: int = choices_data[choice_text]
+		if target_line_idx == - 1:
+			button.pressed.connect(get_tree().quit)
+		else:
+			button.pressed.connect(show_text.bind(target_line_idx))
+		
 ## Animates the character when they start talking
 func slide_in() -> void:
 	var slide_tween := create_tween()
@@ -124,17 +137,3 @@ func slide_in() -> void:
 	slide_tween.tween_property(body, "position:x", 0, 0.3)
 	body.modulate.a = 0
 	slide_tween.parallel().tween_property(body, "modulate:a", 1, 0.2)
-
-func create_buttons(choices_data: Dictionary) -> void:
-	for button in action_buttons_v_box_container.get_children():
-		button.queue_free()
-	for choice_text in choices_data:
-		var button := Button.new()
-		action_buttons_v_box_container.add_child(button)
-		button.text =  choice_text
-		var target_line_idx: int =  choices_data[choice_text]
-		if target_line_idx == - 1:
-			button.pressed.connect(get_tree().quit)
-		else:
-			button.pressed.connect(show_text.bind(target_line_idx))
-		
